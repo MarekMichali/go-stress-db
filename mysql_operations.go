@@ -7,23 +7,27 @@ import (
 	"strings"
 )
 
-func SaveVideoChunksExp(db *sql.DB, chunkData []byte, i int) {
+type MysqlDB struct {
+	Db *sql.DB
+}
+
+func (my *MysqlDB) SaveVideoChunksExp(chunkData []byte, i, rowsPerQuery int) {
 	hexData := fmt.Sprintf("%x", chunkData)
 	name := fmt.Sprintf("video%d", i)
 	var sb strings.Builder
 	sb.WriteString("INSERT INTO videos (name, data) VALUES ")
-	for j := 1; j <= RowsPerQuery; j++ {
+	for j := 1; j <= rowsPerQuery; j++ {
 		sb.WriteString(fmt.Sprintf("('%s', X'%x'),", name, hexData))
 	}
 	query := strings.TrimRight(sb.String(), ",")
-	_, err := db.Exec(query)
+	_, err := my.Db.Exec(query)
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
 	}
 }
 
-func ReadVideoChunk(db *sql.DB) {
-	_, err := db.Exec("SELECT * FROM videos")
+func (my *MysqlDB) ReadVideoChunk() {
+	_, err := my.Db.Exec("SELECT * FROM videos")
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("No rows found ")
@@ -34,29 +38,29 @@ func ReadVideoChunk(db *sql.DB) {
 	}
 }
 
-func UpdateVideoData(db *sql.DB, chunkData []byte, i int) {
+func (my *MysqlDB) UpdateVideoData(chunkData []byte, i int) {
 	hexData := fmt.Sprintf("%x", chunkData)
 	name := fmt.Sprintf("video%d", i)
 	query := fmt.Sprintf("UPDATE videos SET data=X'%x' where name='%s'", hexData, name)
-	_, err := db.Exec(query)
+	_, err := my.Db.Exec(query)
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
 	}
 }
 
-func DropVideoData(db *sql.DB, i int) {
+func (my *MysqlDB) DropVideoData(i int) {
 	name := fmt.Sprintf("video%d", i)
 	query := fmt.Sprintf("DELETE FROM videos where name='%s'", name)
-	_, err := db.Exec(query)
+	_, err := my.Db.Exec(query)
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
 	}
 }
 
-func FindVideoChunks(db *sql.DB, i int) {
+func (my *MysqlDB) FindVideoChunks(i int) {
 	name := fmt.Sprintf("video%d", i)
 	query := fmt.Sprintf("SELECT * FROM videos where name='%s'", name)
-	_, err := db.Exec(query)
+	_, err := my.Db.Exec(query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("No rows found ")

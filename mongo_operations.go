@@ -14,11 +14,11 @@ type MongoDB struct {
 	Collection *mongo.Collection
 }
 
-func (mo *MongoDB) saveVideoChunksMongo(chunkData []byte, i int) {
+func (mo *MongoDB) SaveVideoChunksMongo(chunkData []byte, i, rowsPerQuery int) {
 	hexData := fmt.Sprintf("%x", chunkData)
 	name := fmt.Sprintf("video%d", i)
 	documents := []interface{}{}
-	for j := 1; j <= RowsPerQuery; j++ {
+	for j := 1; j <= rowsPerQuery; j++ {
 		doc := bson.D{
 			{Key: "name", Value: name},
 			{Key: "data", Value: hexData},
@@ -31,7 +31,7 @@ func (mo *MongoDB) saveVideoChunksMongo(chunkData []byte, i int) {
 	}
 }
 
-func (mo *MongoDB) readVideoChunksMongo() {
+func (mo *MongoDB) ReadVideoChunksMongo() {
 	ctx := context.TODO()
 	cursor, err := mo.Collection.Find(ctx, bson.M{})
 	if err != nil {
@@ -56,7 +56,7 @@ func (mo *MongoDB) readVideoChunksMongo() {
 	}
 }
 
-func (mo *MongoDB) updateVideoDataMongo(chunkData []byte, i int) {
+func (mo *MongoDB) UpdateVideoDataMongo(chunkData []byte, i int) {
 	hexData := fmt.Sprintf("%x", chunkData)
 	name := fmt.Sprintf("video%d", i)
 	filter := bson.D{{Key: "name", Value: name}}
@@ -71,7 +71,7 @@ func (mo *MongoDB) updateVideoDataMongo(chunkData []byte, i int) {
 	}
 }
 
-func (mo *MongoDB) dropVideoDataMongo(i int) {
+func (mo *MongoDB) DropVideoDataMongo(i int) {
 	name := fmt.Sprintf("video%d", i)
 	filter := bson.D{{Key: "name", Value: name}}
 	result, err := mo.Collection.DeleteOne(context.TODO(), filter)
@@ -85,7 +85,7 @@ func (mo *MongoDB) dropVideoDataMongo(i int) {
 	}
 }
 
-func (mo *MongoDB) findVideoDataMongo(i int) {
+func (mo *MongoDB) FindVideoDataMongo(i int) {
 	name := fmt.Sprintf("video%d", i)
 	filter := bson.D{{Key: "name", Value: name}}
 	var result bson.M
