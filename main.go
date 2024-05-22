@@ -160,6 +160,9 @@ func main() {
 				}()
 
 				collection := client.Database("test").Collection("videos")
+				mongoDB := MongoDB{
+					Collection: collection,
+				}
 				buffer := make([]byte, BufferSize)
 				ticker := time.NewTicker(TickInterval)
 				defer ticker.Stop()
@@ -178,9 +181,8 @@ func main() {
 							return
 						}
 						x = j
-						SaveVideoChunksMongo(collection, buffer[:bytesRead], x)
+						mongoDB.saveVideoChunksMongo(buffer[:bytesRead], x)
 						j++
-						//return
 					}
 				} else if OpType == 2 {
 					for range ticker.C {
@@ -188,12 +190,8 @@ func main() {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
 							break
 						}
-
-						ReadVideoChunksMongo(collection, "video")
-						//x = j
-						//FindVideoDataMongo(collection, x)
+						mongoDB.readVideoChunksMongo()
 						j++
-						//return
 					}
 				} else if OpType == 3 {
 					file.Read(buffer)
@@ -210,9 +208,8 @@ func main() {
 							return
 						}
 						x = j
-						UpdateVideoDataMongo(collection, buffer[:bytesRead], x)
+						mongoDB.updateVideoDataMongo(buffer[:bytesRead], x)
 						j++
-						//return
 					}
 				} else if OpType == 4 {
 					for range ticker.C {
@@ -221,9 +218,8 @@ func main() {
 							break
 						}
 						x = j
-						DropVideoDataMongo(collection, x)
+						mongoDB.dropVideoDataMongo(x)
 						j++
-						//return
 					}
 				} else if OpType == 5 {
 					for range ticker.C {
@@ -231,12 +227,9 @@ func main() {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
 							break
 						}
-
-						//ReadVideoChunksMongo(collection, "video")
 						x = j
-						FindVideoDataMongo(collection, x)
+						mongoDB.findVideoDataMongo(x)
 						j++
-						//return
 					}
 				}
 			}()

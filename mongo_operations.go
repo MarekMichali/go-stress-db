@@ -10,7 +10,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func SaveVideoChunksMongo(collection *mongo.Collection, chunkData []byte, i int) {
+type MongoDB struct {
+	Collection *mongo.Collection
+}
+
+func (mo *MongoDB) saveVideoChunksMongo(chunkData []byte, i int) {
 	hexData := fmt.Sprintf("%x", chunkData)
 	name := fmt.Sprintf("video%d", i)
 	documents := []interface{}{}
@@ -21,15 +25,15 @@ func SaveVideoChunksMongo(collection *mongo.Collection, chunkData []byte, i int)
 		}
 		documents = append(documents, doc)
 	}
-	_, err := collection.InsertMany(context.TODO(), documents)
+	_, err := mo.Collection.InsertMany(context.TODO(), documents)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func ReadVideoChunksMongo(collection *mongo.Collection, videoName string) {
+func (mo *MongoDB) readVideoChunksMongo() {
 	ctx := context.TODO()
-	cursor, err := collection.Find(ctx, bson.M{})
+	cursor, err := mo.Collection.Find(ctx, bson.M{})
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -37,7 +41,7 @@ func ReadVideoChunksMongo(collection *mongo.Collection, videoName string) {
 	defer cursor.Close(ctx)
 	documentsFound := cursor.RemainingBatchLength()
 	if documentsFound == 0 {
-		log.Printf("No documents found for video name %s", videoName)
+		log.Printf("No documents found")
 		return
 	}
 	for cursor.Next(ctx) {
@@ -52,13 +56,13 @@ func ReadVideoChunksMongo(collection *mongo.Collection, videoName string) {
 	}
 }
 
-func UpdateVideoDataMongo(collection *mongo.Collection, chunkData []byte, i int) {
+func (mo *MongoDB) updateVideoDataMongo(chunkData []byte, i int) {
 	hexData := fmt.Sprintf("%x", chunkData)
 	name := fmt.Sprintf("video%d", i)
 	filter := bson.D{{Key: "name", Value: name}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "data", Value: hexData}}}}
 	opts := options.Update().SetUpsert(true) // Create a new document if one doesn't exist
-	result, err := collection.UpdateOne(context.TODO(), filter, update, opts)
+	result, err := mo.Collection.UpdateOne(context.TODO(), filter, update, opts)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,10 +71,10 @@ func UpdateVideoDataMongo(collection *mongo.Collection, chunkData []byte, i int)
 	}
 }
 
-func DropVideoDataMongo(collection *mongo.Collection, i int) {
+func (mo *MongoDB) dropVideoDataMongo(i int) {
 	name := fmt.Sprintf("video%d", i)
 	filter := bson.D{{Key: "name", Value: name}}
-	result, err := collection.DeleteOne(context.TODO(), filter)
+	result, err := mo.Collection.DeleteOne(context.TODO(), filter)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,11 +85,11 @@ func DropVideoDataMongo(collection *mongo.Collection, i int) {
 	}
 }
 
-func FindVideoDataMongo(collection *mongo.Collection, i int) {
+func (mo *MongoDB) findVideoDataMongo(i int) {
 	name := fmt.Sprintf("video%d", i)
 	filter := bson.D{{Key: "name", Value: name}}
 	var result bson.M
-	err := collection.FindOne(context.TODO(), filter).Decode(&result)
+	err := mo.Collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			fmt.Println("No matching document found.")
