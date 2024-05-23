@@ -14,9 +14,9 @@ type MongoDB struct {
 	Collection *mongo.Collection
 }
 
-func (mo *MongoDB) SaveVideoChunk(chunkData []byte, i, rowsPerQuery int) {
+func (mo *MongoDB) SaveVideoChunk(chunkData []byte, i, connID, rowsPerQuery int) {
 	hexData := fmt.Sprintf("%x", chunkData)
-	name := fmt.Sprintf("video%d", i)
+	name := fmt.Sprintf("v%d-%d", connID, i)
 	documents := []interface{}{}
 	for j := 1; j <= rowsPerQuery; j++ {
 		doc := bson.D{
@@ -56,9 +56,9 @@ func (mo *MongoDB) ReadAllVideoChunks() {
 	}
 }
 
-func (mo *MongoDB) UpdateVideoChunk(chunkData []byte, i int) {
+func (mo *MongoDB) UpdateVideoChunk(chunkData []byte, i, connID int) {
 	hexData := fmt.Sprintf("%x", chunkData)
-	name := fmt.Sprintf("video%d", i)
+	name := fmt.Sprintf("v%d-%d", connID, i)
 	filter := bson.D{{Key: "name", Value: name}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "data", Value: hexData}}}}
 	opts := options.Update().SetUpsert(true) // Create a new document if one doesn't exist
@@ -71,8 +71,8 @@ func (mo *MongoDB) UpdateVideoChunk(chunkData []byte, i int) {
 	}
 }
 
-func (mo *MongoDB) DropVideoChunk(i int) {
-	name := fmt.Sprintf("video%d", i)
+func (mo *MongoDB) DropVideoChunk(i, connID int) {
+	name := fmt.Sprintf("v%d-%d", connID, i)
 	filter := bson.D{{Key: "name", Value: name}}
 	result, err := mo.Collection.DeleteOne(context.TODO(), filter)
 	if err != nil {
@@ -85,8 +85,8 @@ func (mo *MongoDB) DropVideoChunk(i int) {
 	}
 }
 
-func (mo *MongoDB) ReadVideoChunk(i int) {
-	name := fmt.Sprintf("video%d", i)
+func (mo *MongoDB) ReadVideoChunk(i, connID int) {
+	name := fmt.Sprintf("v%d-%d", connID, i)
 	filter := bson.D{{Key: "name", Value: name}}
 	var result bson.M
 	err := mo.Collection.FindOne(context.TODO(), filter).Decode(&result)

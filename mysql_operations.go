@@ -11,9 +11,9 @@ type MysqlDB struct {
 	Db *sql.DB
 }
 
-func (my *MysqlDB) SaveVideoChunk(chunkData []byte, i, rowsPerQuery int) {
+func (my *MysqlDB) SaveVideoChunk(chunkData []byte, i, connID, rowsPerQuery int) {
 	hexData := fmt.Sprintf("%x", chunkData)
-	name := fmt.Sprintf("video%d", i)
+	name := fmt.Sprintf("v%d-%d", connID, i)
 	var sb strings.Builder
 	sb.WriteString("INSERT INTO videos (name, data) VALUES ")
 	for j := 1; j <= rowsPerQuery; j++ {
@@ -38,9 +38,9 @@ func (my *MysqlDB) ReadAllVideoChunks() {
 	}
 }
 
-func (my *MysqlDB) UpdateVideoChunk(chunkData []byte, i int) {
+func (my *MysqlDB) UpdateVideoChunk(chunkData []byte, i, connID int) {
 	hexData := fmt.Sprintf("%x", chunkData)
-	name := fmt.Sprintf("video%d", i)
+	name := fmt.Sprintf("v%d-%d", connID, i)
 	query := fmt.Sprintf("UPDATE videos SET data=X'%x' where name='%s'", hexData, name)
 	_, err := my.Db.Exec(query)
 	if err != nil {
@@ -48,8 +48,8 @@ func (my *MysqlDB) UpdateVideoChunk(chunkData []byte, i int) {
 	}
 }
 
-func (my *MysqlDB) DropVideoChunk(i int) {
-	name := fmt.Sprintf("video%d", i)
+func (my *MysqlDB) DropVideoChunk(i, connID int) {
+	name := fmt.Sprintf("v%d-%d", connID, i)
 	query := fmt.Sprintf("DELETE FROM videos where name='%s'", name)
 	_, err := my.Db.Exec(query)
 	if err != nil {
@@ -57,8 +57,8 @@ func (my *MysqlDB) DropVideoChunk(i int) {
 	}
 }
 
-func (my *MysqlDB) ReadVideoChunk(i int) {
-	name := fmt.Sprintf("video%d", i)
+func (my *MysqlDB) ReadVideoChunk(i, connID int) {
+	name := fmt.Sprintf("v%d-%d", connID, i)
 	query := fmt.Sprintf("SELECT * FROM videos where name='%s'", name)
 	_, err := my.Db.Exec(query)
 	if err != nil {
