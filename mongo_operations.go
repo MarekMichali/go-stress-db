@@ -60,7 +60,7 @@ func (mo *MongoDB) UpdateVideoChunk(chunkData []byte, i, connID int) {
 	name := fmt.Sprintf("v%d-%d", connID, i)
 	filter := bson.D{{Key: "name", Value: name}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "data", Value: hexData}}}}
-	result, err := mo.Collection.UpdateOne(context.TODO(), filter, update)
+	result, err := mo.Collection.UpdateMany(context.TODO(), filter, update)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,7 +72,7 @@ func (mo *MongoDB) UpdateVideoChunk(chunkData []byte, i, connID int) {
 func (mo *MongoDB) DropVideoChunk(i, connID int) {
 	name := fmt.Sprintf("v%d-%d", connID, i)
 	filter := bson.D{{Key: "name", Value: name}}
-	result, err := mo.Collection.DeleteOne(context.TODO(), filter)
+	result, err := mo.Collection.DeleteMany(context.TODO(), filter)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -82,6 +82,32 @@ func (mo *MongoDB) DropVideoChunk(i, connID int) {
 }
 
 func (mo *MongoDB) ReadVideoChunk(i, connID int) {
+	ctx := context.TODO()
+	name := fmt.Sprintf("v%d-%d", connID, i)
+	filter := bson.D{{Key: "name", Value: name}}
+	cursor, err := mo.Collection.Find(context.TODO(), filter)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer cursor.Close(ctx)
+	documentsFound := cursor.RemainingBatchLength()
+	if documentsFound == 0 {
+		log.Printf("No documents found")
+		return
+	}
+	for cursor.Next(ctx) {
+		var result bson.D
+		if err := cursor.Decode(&result); err != nil {
+			log.Println(err)
+		}
+	}
+	if err := cursor.Err(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (mo *MongoDB) ReadVideoChunkold(i, connID int) {
 	name := fmt.Sprintf("v%d-%d", connID, i)
 	filter := bson.D{{Key: "name", Value: name}}
 	var result bson.M
