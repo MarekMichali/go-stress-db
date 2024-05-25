@@ -1,14 +1,11 @@
 #!/bin/bash
 
-# Start the MariaDB container
 docker start mariadbtest
 
-# Execute commands inside the MariaDB container without interactive mode
-# by using a heredoc to pass commands to docker exec
 docker exec -i mariadbtest bash << 'EOF'
-# Run MariaDB with the password provided via an environment variable
+
 mariadb -p"123456" << 'EOSQL'
-# Run SQL commands
+
 USE videos;
 DROP TABLE IF EXISTS videos;
 SET GLOBAL tmp_table_size = 1024 * 1024 * 1024 * 4;

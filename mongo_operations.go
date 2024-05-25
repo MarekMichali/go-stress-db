@@ -7,7 +7,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoDB struct {
@@ -61,8 +60,7 @@ func (mo *MongoDB) UpdateVideoChunk(chunkData []byte, i, connID int) {
 	name := fmt.Sprintf("v%d-%d", connID, i)
 	filter := bson.D{{Key: "name", Value: name}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "data", Value: hexData}}}}
-	opts := options.Update().SetUpsert(true) // Create a new document if one doesn't exist
-	result, err := mo.Collection.UpdateOne(context.TODO(), filter, update, opts)
+	result, err := mo.Collection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,8 +78,6 @@ func (mo *MongoDB) DropVideoChunk(i, connID int) {
 	}
 	if result.DeletedCount == 0 {
 		fmt.Println("No matching document found to delete.")
-	} else {
-		fmt.Printf("Successfully deleted document with name %s\n", name)
 	}
 }
 

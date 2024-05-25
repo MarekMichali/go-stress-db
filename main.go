@@ -17,21 +17,21 @@ import (
 
 const (
 	BufferSize      = 8000 //26350 vor varbinary, 8000 for varchar // 61k iteration for 8000 for mysql
-	NoOfConnections = 100
+	NoOfConnections = 25
 	TickInterval    = 1 * time.Millisecond
-	RowsPerQuery    = 1   // works for inserts only
-	SelectDB        = 1   // 1 for mysql, 2 for mongo
-	OpType          = 1   // 1 for insert, 2 for select all 3 for update 4 for delete, 5 for select 1 row
-	MaxIterations   = 500 // 50000 max
+	RowsPerQuery    = 1    // works for inserts only
+	SelectDB        = 2    // 1 for mysql, 2 for mongo
+	OpType          = 5    // 1 for insert, 2 for select all 3 for update 4 for delete, 5 for select 1 row
+	MaxIterations   = 2000 // 50000 max
 	mysqlConnStr    = "root:123456@tcp(127.0.0.1:3306)/videos"
-	mongoConnStr    = "mongodb://root:123456@localhost:27017"
+	mongoConnStr    = "mongodb://pmm:pmm@localhost:27017/?serverSelectionTimeoutMS=3000000"
 	videoName       = "bigSample.mp4"
 )
 
 func main() {
 	var wg sync.WaitGroup
 	fmt.Printf("Starting, Timestamp: %s\n", time.Now().Format(time.StampMilli))
-
+	fmt.Printf("Operation type: %d\n", OpType)
 	if SelectDB == 1 {
 		for connID := 0; connID < NoOfConnections; connID++ {
 			wg.Add(1)
