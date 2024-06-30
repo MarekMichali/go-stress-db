@@ -43,12 +43,7 @@ func (rdb *RedisDB) ReadAllVideoChunks() {
 }
 
 func (rdb *RedisDB) UpdateVideoChunk(chunkData []byte, i, connID int) {
-	hexData := fmt.Sprintf("%x", chunkData)
-	key := fmt.Sprintf("v%d-%d", connID, i)
-	err := rdb.Client.Set(context.TODO(), key, hexData, 0).Err()
-	if err != nil {
-		log.Fatalf("Unable to update the chunk in Redis. %v", err)
-	}
+	rdb.SaveVideoChunk(chunkData, i, connID)
 }
 
 func (rdb *RedisDB) DropVideoChunk(i, connID int) {

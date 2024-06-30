@@ -21,8 +21,8 @@ const (
 	NoOfConnections = 1
 	TickInterval    = 1 * time.Millisecond
 	RowsPerQuery    = 1     // works for inserts only
-	SelectDB        = 3     // 1 for mysql, 2 for mongo, 3 for redis
-	OpType          = 4     // 1 for insert, 2 for select all 3 for update 4 for delete, 5 for select 1 row
+	SelectDB        = 2     // 1 for mysql, 2 for mongo, 3 for redis
+	OpType          = 1     // 1 for insert, 2 for select all 3 for update 4 for delete, 5 for select 1 row
 	MaxIterations   = 50000 // 50000 max //2k for 25 conn
 	mysqlConnStr    = "root:123456@tcp(127.0.0.1:3306)/videos"
 	mongoConnStr    = "mongodb://pmm:pmm@localhost:27017/?serverSelectionTimeoutMS=3000000"

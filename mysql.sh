@@ -1,10 +1,10 @@
 #!/bin/bash
 
-docker start mariadbtest
+docker start mysql
 
-docker exec -i mariadbtest bash << 'EOF'
+docker exec -i mysql bash << 'EOF'
 
-mariadb -p"123456" << 'EOSQL'
+mysql -p"123456" << 'EOSQL'
 
 CREATE DATABASE IF NOT EXISTS videos;
 USE videos;
