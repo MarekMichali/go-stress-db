@@ -13,13 +13,17 @@ type MongoDB struct {
 	Collection *mongo.Collection
 }
 
-func (mo *MongoDB) SaveVideoChunk(chunkData []byte, i, connID, rowsPerQuery int) {
+func (mo *MongoDB) SaveVideoChunk(chunkData []byte, i, connID, rowsPerQuery int, primaryKey bool) {
 	hexData := fmt.Sprintf("%x", chunkData)
 	name := fmt.Sprintf("v%d-%d", connID, i)
 	documents := []interface{}{}
+	keyName := "_id"
+	if !primaryKey {
+		keyName = "name"
+	}
 	for j := 1; j <= rowsPerQuery; j++ {
 		doc := bson.D{
-			{Key: "name", Value: name},
+			{Key: keyName, Value: name},
 			{Key: "data", Value: hexData},
 		}
 		documents = append(documents, doc)
@@ -55,10 +59,14 @@ func (mo *MongoDB) ReadAllVideoChunks() {
 	}
 }
 
-func (mo *MongoDB) UpdateVideoChunk(chunkData []byte, i, connID int) {
+func (mo *MongoDB) UpdateVideoChunk(chunkData []byte, i, connID int, primaryKey bool) {
 	hexData := fmt.Sprintf("%x", chunkData)
 	name := fmt.Sprintf("v%d-%d", connID, i)
-	filter := bson.D{{Key: "name", Value: name}}
+	keyName := "_id"
+	if !primaryKey {
+		keyName = "name"
+	}
+	filter := bson.D{{Key: keyName, Value: name}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "data", Value: hexData}}}}
 	result, err := mo.Collection.UpdateMany(context.TODO(), filter, update)
 	if err != nil {
@@ -69,9 +77,13 @@ func (mo *MongoDB) UpdateVideoChunk(chunkData []byte, i, connID int) {
 	}
 }
 
-func (mo *MongoDB) DropVideoChunk(i, connID int) {
+func (mo *MongoDB) DropVideoChunk(i, connID int, primaryKey bool) {
 	name := fmt.Sprintf("v%d-%d", connID, i)
-	filter := bson.D{{Key: "name", Value: name}}
+	keyName := "_id"
+	if !primaryKey {
+		keyName = "name"
+	}
+	filter := bson.D{{Key: keyName, Value: name}}
 	result, err := mo.Collection.DeleteMany(context.TODO(), filter)
 	if err != nil {
 		log.Fatal(err)
@@ -81,10 +93,14 @@ func (mo *MongoDB) DropVideoChunk(i, connID int) {
 	}
 }
 
-func (mo *MongoDB) ReadVideoChunk(i, connID int) {
+func (mo *MongoDB) ReadVideoChunk(i, connID int, primaryKey bool) {
 	ctx := context.TODO()
 	name := fmt.Sprintf("v%d-%d", connID, i)
-	filter := bson.D{{Key: "name", Value: name}}
+	keyName := "_id"
+	if !primaryKey {
+		keyName = "name"
+	}
+	filter := bson.D{{Key: keyName, Value: name}}
 	cursor, err := mo.Collection.Find(context.TODO(), filter)
 	if err != nil {
 		log.Fatal(err)
@@ -107,9 +123,13 @@ func (mo *MongoDB) ReadVideoChunk(i, connID int) {
 	}
 }
 
-func (mo *MongoDB) ReadVideoChunkold(i, connID int) {
+func (mo *MongoDB) ReadVideoChunkold(i, connID int, primaryKey bool) {
 	name := fmt.Sprintf("v%d-%d", connID, i)
-	filter := bson.D{{Key: "name", Value: name}}
+	keyName := "_id"
+	if !primaryKey {
+		keyName = "name"
+	}
+	filter := bson.D{{Key: keyName, Value: name}}
 	var result bson.M
 	err := mo.Collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {

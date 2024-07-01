@@ -1,6 +1,6 @@
-docker start mongo
+docker start mongodb
 
-docker exec -i mongo bash <<'EOF'
+docker exec -i mongodb bash <<'EOF'
 
 mongosh <<'EOSQL'
 

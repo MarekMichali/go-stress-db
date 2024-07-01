@@ -1,1 +1,1 @@
-docker run --name mongo -v ./mongo:/etc -d -p 27017:27017 mongodb/mongodb-enterprise-server:7.0.7-ubi8 --config etc/mongod.conf
+docker run --name mongodb -v ./mongodb:/etc -d -p 27017:27017 mongodb/mongodb-enterprise-server:7.0.7-ubi8 --config etc/mongod.conf

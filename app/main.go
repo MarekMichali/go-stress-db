@@ -30,6 +30,7 @@ var (
 	mongoConnStr    string
 	redisConnStr    string
 	videoName       string
+	primaryKey      bool
 )
 
 func flags() {
@@ -44,6 +45,7 @@ func flags() {
 	flag.StringVar(&mongoConnStr, "mongoConnStr", "mongodb://pmm:pmm@localhost:27017/?serverSelectionTimeoutMS=3000000", "MongoDB connection string")
 	flag.StringVar(&redisConnStr, "redisConnStr", "redis://localhost:6379", "Redis connection string")
 	flag.StringVar(&videoName, "video", "bigSample.mp4", "Video name")
+	flag.BoolVar(&primaryKey, "primaryKey", true, "Use primary key mode")
 }
 
 func main() {
@@ -51,7 +53,7 @@ func main() {
 	flag.Parse()
 	var wg sync.WaitGroup
 	fmt.Printf("Starting, Timestamp: %s\n", time.Now().Format(time.StampMilli))
-	fmt.Printf("Database selected: %s, Operation type: %s, Number of connections: %d, Iterations: %d, Rows per query: %d, Buffer size: %d, Query interval: %s\n", SelectDB, OpType, NoOfConnections, MaxIterations, RowsPerQuery, BufferSize, TickInterval)
+	fmt.Printf("Database selected: %s, Operation type: %s, Number of connections: %d, Iterations: %d, Rows per query: %d, Buffer size: %d, Query interval: %s, Primary key mode: %v\n", SelectDB, OpType, NoOfConnections, MaxIterations, RowsPerQuery, BufferSize, TickInterval, primaryKey)
 	if SelectDB == "mysql" || SelectDB == "mariadb" {
 		for connID := 0; connID < NoOfConnections; connID++ {
 			wg.Add(1)
@@ -196,7 +198,7 @@ func main() {
 						//	bufCopy := make([]byte, bytesRead)
 						//	copy(bufCopy, buffer[:bytesRead])
 						//	go mongoDB.SaveVideoChunk(bufCopy, j, RowsPerQuery)
-						mongoDB.SaveVideoChunk(buffer[:bytesRead], i, connID, RowsPerQuery)
+						mongoDB.SaveVideoChunk(buffer[:bytesRead], i, connID, RowsPerQuery, primaryKey)
 						i++
 					}
 					/*} else if OpType == 2 {
@@ -225,7 +227,7 @@ func main() {
 						//	bufCopy := make([]byte, bytesRead)
 						//	copy(bufCopy, buffer[:bytesRead])
 						//	go mongoDB.UpdateVideoChunk(bufCopy, j)
-						mongoDB.UpdateVideoChunk(buffer[:bytesRead], i, connID)
+						mongoDB.UpdateVideoChunk(buffer[:bytesRead], i, connID, primaryKey)
 						i++
 					}
 				} else if OpType == "delete" {
@@ -234,7 +236,7 @@ func main() {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
 							break
 						}
-						mongoDB.DropVideoChunk(i, connID)
+						mongoDB.DropVideoChunk(i, connID, primaryKey)
 						i++
 					}
 				} else if OpType == "select" {
@@ -243,7 +245,7 @@ func main() {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
 							break
 						}
-						mongoDB.ReadVideoChunk(i, connID)
+						mongoDB.ReadVideoChunk(i, connID, primaryKey)
 						i++
 					}
 				} else {
