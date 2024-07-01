@@ -14,27 +14,45 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"flag"
 )
 
-const (
-	BufferSize      = 8000 //26350 vor varbinary, 8000 for varchar // 61k iteration for 8000 for mysql
-	NoOfConnections = 1
-	TickInterval    = 1 * time.Millisecond
-	RowsPerQuery    = 1     // works for inserts only
-	SelectDB        = 2     // 1 for mysql, 2 for mongo, 3 for redis
-	OpType          = 1     // 1 for insert, 2 for select all 3 for update 4 for delete, 5 for select 1 row
-	MaxIterations   = 50000 // 50000 max //2k for 25 conn
-	mysqlConnStr    = "root:123456@tcp(127.0.0.1:3306)/videos"
-	mongoConnStr    = "mongodb://pmm:pmm@localhost:27017/?serverSelectionTimeoutMS=3000000"
-	redisConnStr    = "redis://localhost:6379"
-	videoName       = "bigSample.mp4"
+var (
+	BufferSize      int
+	NoOfConnections int
+	TickInterval    time.Duration
+	RowsPerQuery    int
+	SelectDB        string
+	OpType          string
+	MaxIterations   int
+	mysqlConnStr    string
+	mongoConnStr    string
+	redisConnStr    string
+	videoName       string
 )
+
+func flags() {
+	flag.IntVar(&BufferSize, "buffer", 8000, "Buffer size")
+	flag.IntVar(&NoOfConnections, "conn", 1, "Number of connections")
+	flag.DurationVar(&TickInterval, "tickInterval", 1*time.Millisecond, "Tick interval between queries")
+	flag.IntVar(&RowsPerQuery, "rows", 1, "Rows per query")
+	flag.StringVar(&SelectDB, "db", "mysql", "Select database (mysql, mariadb, mongodb, redis)")
+	flag.StringVar(&OpType, "op", "insert", "Operation type (insert, select, update, delete)")
+	flag.IntVar(&MaxIterations, "it", 50000, "Max iterations")
+	flag.StringVar(&mysqlConnStr, "mysqlConnStr", "root:123456@tcp(127.0.0.1:3306)/videos", "MySQL/MariaDB connection string")
+	flag.StringVar(&mongoConnStr, "mongoConnStr", "mongodb://pmm:pmm@localhost:27017/?serverSelectionTimeoutMS=3000000", "MongoDB connection string")
+	flag.StringVar(&redisConnStr, "redisConnStr", "redis://localhost:6379", "Redis connection string")
+	flag.StringVar(&videoName, "video", "bigSample.mp4", "Video name")
+}
 
 func main() {
+	flags()
+	flag.Parse()
 	var wg sync.WaitGroup
 	fmt.Printf("Starting, Timestamp: %s\n", time.Now().Format(time.StampMilli))
-	fmt.Printf("Operation type: %d, max iterations: %d, buffer size: %d, rows per query: %d, no of connections: %d\n", OpType, MaxIterations, BufferSize, RowsPerQuery, NoOfConnections)
-	if SelectDB == 1 {
+	fmt.Printf("Database selected: %s, Operation type: %s, Number of connections: %d, Iterations: %d, Rows per query: %d, Buffer size: %d, Query interval: %s\n", SelectDB, OpType, NoOfConnections, MaxIterations, RowsPerQuery, BufferSize, TickInterval)
+	if SelectDB == "mysql" || SelectDB == "mariadb" {
 		for connID := 0; connID < NoOfConnections; connID++ {
 			wg.Add(1)
 			go func(connID int) {
@@ -60,7 +78,7 @@ func main() {
 				defer ticker.Stop()
 
 				i := 0
-				if OpType == 1 {
+				if OpType == "insert" {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -79,16 +97,16 @@ func main() {
 						mysqlDB.SaveVideoChunk(buffer[:bytesRead], i, connID, RowsPerQuery)
 						i++
 					}
-				} else if OpType == 2 {
-					for range ticker.C {
-						if i >= MaxIterations {
-							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
-							break
-						}
-						mysqlDB.ReadAllVideoChunks()
-						i++
-					}
-				} else if OpType == 3 {
+					/*		} else if OpType == 2 {
+							for range ticker.C {
+								if i >= MaxIterations {
+									fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
+									break
+								}
+								mysqlDB.ReadAllVideoChunks()
+								i++
+							}*/
+				} else if OpType == "update" {
 					file.Read(buffer)
 					for range ticker.C {
 						if i >= MaxIterations {
@@ -108,7 +126,7 @@ func main() {
 						mysqlDB.UpdateVideoChunk(buffer[:bytesRead], i, connID)
 						i++
 					}
-				} else if OpType == 4 {
+				} else if OpType == "delete" {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -117,7 +135,7 @@ func main() {
 						mysqlDB.DropVideoChunk(i, connID)
 						i++
 					}
-				} else if OpType == 5 {
+				} else if OpType == "select" {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -126,10 +144,12 @@ func main() {
 						mysqlDB.ReadVideoChunk(i, connID)
 						i++
 					}
+				} else {
+					log.Fatal("Invalid operation type selected")
 				}
 			}(connID)
 		}
-	} else if SelectDB == 2 {
+	} else if SelectDB == "mongodb" {
 		for connID := 0; connID < NoOfConnections; connID++ {
 			wg.Add(1)
 			go func(connID int) {
@@ -160,7 +180,7 @@ func main() {
 				defer ticker.Stop()
 
 				i := 0
-				if OpType == 1 {
+				if OpType == "insert" {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -179,7 +199,7 @@ func main() {
 						mongoDB.SaveVideoChunk(buffer[:bytesRead], i, connID, RowsPerQuery)
 						i++
 					}
-				} else if OpType == 2 {
+					/*} else if OpType == 2 {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -187,8 +207,8 @@ func main() {
 						}
 						mongoDB.ReadAllVideoChunks()
 						i++
-					}
-				} else if OpType == 3 {
+					}*/
+				} else if OpType == "update" {
 					file.Read(buffer)
 					for range ticker.C {
 						if i >= MaxIterations {
@@ -208,7 +228,7 @@ func main() {
 						mongoDB.UpdateVideoChunk(buffer[:bytesRead], i, connID)
 						i++
 					}
-				} else if OpType == 4 {
+				} else if OpType == "delete" {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -217,7 +237,7 @@ func main() {
 						mongoDB.DropVideoChunk(i, connID)
 						i++
 					}
-				} else if OpType == 5 {
+				} else if OpType == "select" {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -226,10 +246,12 @@ func main() {
 						mongoDB.ReadVideoChunk(i, connID)
 						i++
 					}
+				} else {
+					log.Fatal("Invalid operation type selected")
 				}
 			}(connID)
 		}
-	} else {
+	} else if SelectDB == "redis" {
 		for connID := 0; connID < NoOfConnections; connID++ {
 			wg.Add(1)
 			go func(connID int) {
@@ -255,7 +277,7 @@ func main() {
 				defer ticker.Stop()
 
 				i := 0
-				if OpType == 1 {
+				if OpType == "insert" {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -271,7 +293,7 @@ func main() {
 						RedisDB.SaveVideoChunk(buffer[:bytesRead], i, connID)
 						i++
 					}
-				} else if OpType == 5 {
+				} else if OpType == "select" {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -280,7 +302,7 @@ func main() {
 						RedisDB.ReadVideoChunk(i, connID)
 						i++
 					}
-				} else if OpType == 3 {
+				} else if OpType == "update" {
 					file.Read(buffer)
 					for range ticker.C {
 						if i >= MaxIterations {
@@ -298,7 +320,7 @@ func main() {
 						RedisDB.UpdateVideoChunk(buffer[:bytesRead], i, connID)
 						i++
 					}
-				} else if OpType == 4 {
+				} else if OpType == "delete" {
 					for range ticker.C {
 						if i >= MaxIterations {
 							fmt.Printf("Max Iterations reached, Timestamp: %s\n", time.Now().Format(time.StampMilli))
@@ -307,10 +329,14 @@ func main() {
 						RedisDB.DropVideoChunk(i, connID)
 						i++
 					}
+				} else {
+					log.Fatal("Invalid operation type selected")
 				}
 			}(connID)
 
 		}
+	} else {
+		log.Fatal("Invalid database selected")
 	}
 	wg.Wait()
 }
