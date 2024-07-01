@@ -21,3 +21,6 @@
 go.work
 
 *.mp4
+/scripts/init-databases/mongodb/hosts
+/scripts/init-databases/mongodb/hostname
+/scripts/init-databases/mongodb/resolv.conf
