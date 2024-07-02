@@ -1,0 +1,2 @@
+FROM mongodb/mongodb-enterprise-server:7.0.11-ubi8
+COPY . /etc

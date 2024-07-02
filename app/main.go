@@ -36,7 +36,7 @@ var (
 func flags() {
 	flag.IntVar(&BufferSize, "buffer", 8000, "Buffer size")
 	flag.IntVar(&NoOfConnections, "conn", 1, "Number of connections")
-	flag.DurationVar(&TickInterval, "tickInterval", 1*time.Millisecond, "Tick interval between queries")
+	flag.DurationVar(&TickInterval, "intvl", 1*time.Millisecond, "Tick interval between queries")
 	flag.IntVar(&RowsPerQuery, "rows", 1, "Rows per query")
 	flag.StringVar(&SelectDB, "db", "mysql", "Select database (mysql, mariadb, mongodb, redis)")
 	flag.StringVar(&OpType, "op", "insert", "Operation type (insert, select, update, delete)")
@@ -45,7 +45,7 @@ func flags() {
 	flag.StringVar(&mongoConnStr, "mongoConnStr", "mongodb://pmm:pmm@localhost:27017/?serverSelectionTimeoutMS=3000000", "MongoDB connection string")
 	flag.StringVar(&redisConnStr, "redisConnStr", "redis://localhost:6379", "Redis connection string")
 	flag.StringVar(&videoName, "video", "bigSample.mp4", "Video name")
-	flag.BoolVar(&primaryKey, "primaryKey", true, "Use primary key mode")
+	flag.BoolVar(&primaryKey, "pk", true, "Use primary key mode")
 }
 
 func main() {

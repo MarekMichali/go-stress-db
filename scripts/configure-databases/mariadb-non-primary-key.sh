@@ -1,18 +1,19 @@
 #!/bin/bash
 
-docker start mariadbtest
+docker start mariadb
 
-docker exec -i mariadbtest bash << 'EOF'
+docker exec -i mariadb bash << 'EOF'
 
 mariadb -p"123456" << 'EOSQL'
 
 CREATE DATABASE IF NOT EXISTS videos;
 USE videos;
 DROP TABLE IF EXISTS videos;
-SET max_heap_table_size = 1024 * 1024 * 1024 * 1;
+SET max_heap_table_size = 1024 * 1024 * 1024 * 4;
 
 CREATE TABLE videos (
-    name VARCHAR(10) PRIMARY KEY NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(10) NOT NULL,
     data VARCHAR(16000)
 ) ENGINE=MEMORY;
 EOSQL

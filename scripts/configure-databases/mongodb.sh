@@ -1,3 +1,5 @@
+#!/bin/bash
+
 docker start mongodb
 
 docker exec -i mongodb bash <<'EOF'
@@ -63,6 +65,9 @@ db.getSiblingDB("admin").updateUser("pmm", {
         { "db" : "admin", "role" : "pbmAnyAction" }
     ]
 })
+
+db.videos.drop()
+
 EOSQL
 
 EOF
