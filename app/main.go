@@ -42,7 +42,7 @@ func flags() {
 	flag.StringVar(&OpType, "op", "insert", "Operation type (insert, select, update, delete)")
 	flag.IntVar(&MaxIterations, "it", 50000, "Max iterations")
 	flag.StringVar(&mysqlConnStr, "mysqlConnStr", "root:123456@tcp(127.0.0.1:3306)/videos", "MySQL/MariaDB connection string")
-	flag.StringVar(&mongoConnStr, "mongoConnStr", "mongodb://pmm:pmm@localhost:27017/?serverSelectionTimeoutMS=3000000", "MongoDB connection string")
+	flag.StringVar(&mongoConnStr, "mongoConnStr", "mongodb://pmm:pmm@localhost:27017/?serverSelectionTimeoutMS=30000", "MongoDB connection string")
 	flag.StringVar(&redisConnStr, "redisConnStr", "redis://localhost:6379", "Redis connection string")
 	flag.StringVar(&videoName, "video", "bigSample.mp4", "Video name")
 	flag.BoolVar(&primaryKey, "pk", true, "Use primary key mode")
