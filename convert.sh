@@ -54,7 +54,7 @@ while IFS= read -r line; do
         
         # Perform the division and print the result
         if [[ $divisor != 0 ]]; then # Check to avoid division by zero
-            result=$(echo "scale=2; $dividend / $divisor" | bc)
+            result=$(echo "scale=5; $dividend / $divisor" | bc)
             echo "$dividend / $divisor = $result" >> "tmp2.txt"
         fi
     fi
