@@ -23,9 +23,13 @@ while IFS= read -r line; do
         time_in_ms=$(echo "$time_in_hours * 3600 * 1000" | bc)
         echo "${line}: $time_in_ms" >> "tmp.txt"
     elif [[ "$line" =~ min$ ]]; then
-        # Extract the number and convert minutes to milliseconds
+        # Extract the number and convert minutes to millisecondss
         time_in_min=$(echo "$line" | grep -o '[0-9.]*')
         time_in_ms=$(echo "$time_in_min * 60 * 1000" | bc)
+        echo "${line}: $time_in_ms" >> "tmp.txt"
+    elif [[ "$line" =~ ms$ ]]; then
+        # Extract the number and convert milliseconds to milliseconds
+        time_in_ms=$(echo "$line" | grep -o '[0-9.]*')
         echo "${line}: $time_in_ms" >> "tmp.txt"
     elif [[ "$line" =~ s$ ]]; then
         # Extract the number and convert seconds to milliseconds
