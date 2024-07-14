@@ -69,7 +69,7 @@ db.getSiblingDB("admin").updateUser("pmm", {
 db.videos.drop()
 db.setProfilingLevel(0)
 db.system.profile.drop()
-db.createCollection( "system.profile", { capped: true, size:256000000 } )
+db.createCollection( "system.profile", { capped: true, size:1024000000 } )
 db.setProfilingLevel(2)
 EOSQL
 
