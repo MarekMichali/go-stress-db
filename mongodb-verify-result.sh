@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker update --cpus 2 mongodb
+docker update --cpus 4 mongodb
 op_type=$1
 
 if [[ "$op_type" == "insert" ]]; then
