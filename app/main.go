@@ -27,6 +27,7 @@ var (
 	OpType          string
 	MaxIterations   int
 	mysqlConnStr    string
+	mariadbConnStr  string
 	mongoConnStr    string
 	redisConnStr    string
 	videoName       string
@@ -41,7 +42,8 @@ func flags() {
 	flag.StringVar(&SelectDB, "db", "mysql", "Select database (mysql, mariadb, mongodb, redis)")
 	flag.StringVar(&OpType, "op", "insert", "Operation type (insert, select, update, delete)")
 	flag.IntVar(&MaxIterations, "it", 50000, "Max iterations")
-	flag.StringVar(&mysqlConnStr, "mysqlConnStr", "root:123456@tcp(127.0.0.1:3306)/videos", "MySQL/MariaDB connection string")
+	flag.StringVar(&mysqlConnStr, "mysqlConnStr", "root:123456@tcp(127.0.0.1:3333)/videos", "MySQL connection string")
+	flag.StringVar(&mariadbConnStr, "mariadbConnStr", "root:123456@tcp(127.0.0.1:3306)/videos", "MariaDB connection string")
 	flag.StringVar(&mongoConnStr, "mongoConnStr", "mongodb://pmm:pmm@localhost:27017/?serverSelectionTimeoutMS=30000", "MongoDB connection string")
 	flag.StringVar(&redisConnStr, "redisConnStr", "redis://localhost:6379", "Redis connection string")
 	flag.StringVar(&videoName, "video", "bigSample.mp4", "Video name")
@@ -55,6 +57,9 @@ func main() {
 	fmt.Printf("Starting, Timestamp: %s\n", time.Now().Format(time.StampMilli))
 	fmt.Printf("Database selected: %s, Operation type: %s, Number of connections: %d, Iterations: %d, Rows per query: %d, Buffer size: %d, Query interval: %s, Primary key mode: %v\n", SelectDB, OpType, NoOfConnections, MaxIterations, RowsPerQuery, BufferSize, TickInterval, primaryKey)
 	if SelectDB == "mysql" || SelectDB == "mariadb" {
+		if SelectDB == "mariadb" {
+			mysqlConnStr = mariadbConnStr
+		}
 		for connID := 0; connID < NoOfConnections; connID++ {
 			wg.Add(1)
 			go func(connID int) {
