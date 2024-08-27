@@ -11,3 +11,5 @@ Next, go to the `configure-databases` directory and perform the following:
 1. Run the configuration script for the desired database.
 
 Once the above steps are completed, you can execute the `./run-test.sh` script. Detailed instructions on how to use this script are provided in the script manual.
+
+Video used for testing: https://www.youtube.com/watch?v=o-7fsuJtEhk
